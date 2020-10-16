@@ -1,0 +1,42 @@
+.App {
+  text-align: center;
+  /*margin-left: auto;
+  margin-right: auto;
+  margin-top: 50px;*/
+  width: auto;
+  padding: 100px;
+  /*background-color: green;*/
+}
+
+.form-control {
+  width: 30%;
+  padding-bottom: 10px;
+}
+
+.InputSection {
+  position: center;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+  /*background-color: blue;*/
+  height: 300px;
+}
+
+.InputSectionTitle {
+  font-size: 150%;
+  padding: 10px;
+  font-weight: bold;
+}
+
+.hidden {
+  display: none;
+}
+
+.ResultSection {
+  position: center;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+  /*background-color: blue;*/
+  height: 300px;
+}
