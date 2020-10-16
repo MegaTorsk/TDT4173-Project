@@ -27,7 +27,7 @@ function App() {
 
   return (
     <div className="App">
-      <Fade in={!showResult} timeout={10000}>
+      <Fade in={!showResult} timeout={1000}>
         <div className={showResult ? 'hidden' : 'InputSection'}>
           <h3 className="mt-5">Input a comment</h3>
           <Form>
@@ -36,7 +36,7 @@ function App() {
           <Button variant="outline-dark" style={{margin: 20}} onClick={submitButtonClick}>Submit</Button>
         </div>
       </Fade>
-      <Fade in={showResult} timeout={10000}>
+      <Fade in={showResult} timeout={1000}>
         <div className={showResult ? 'ResultSection' : 'hidden'}>
           {showResult ? <BarChart resultingValues={resultList} /> : null}
           {showResult ? <Button variant="outline-dark" style={{margin: 20}} onClick={() => toggleShowResult(!showResult)}>Try again</Button> : null}
