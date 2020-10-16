@@ -8,8 +8,8 @@ class BarChart extends React.Component {
         labels: ["Youtube", "Reddit", "Hacker News"],
         datasets: [
           {
-            label: "category fit in %",
-            data: [20, 70, 10],
+            label: "",
+            data: this.props.resultingValues,
             backgroundColor: [
               "rgba(255, 134,159,0.4)",
               "rgba(98,  182, 239,0.4)",
@@ -25,8 +25,11 @@ class BarChart extends React.Component {
         ]
       },
       barChartOptions: {
+        legend: {
+          display: false
+        },
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
         scales: {
           xAxes: [
             {
