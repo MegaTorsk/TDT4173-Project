@@ -8,6 +8,10 @@
   /*background-color: green;*/
 }
 
+._loading_overlay_wrapper_loading_overlay_wrapper--active {
+  height: 100%;
+}
+
 .form-control {
   width: 30%;
   padding-bottom: 10px;

@@ -5,7 +5,7 @@ import { MDBContainer } from "mdbreact";
 class BarChart extends React.Component {
     state = {
       dataBar: {
-        labels: ["Youtube", "Reddit", "Hacker News"],
+        labels: ["Reddit", "Hacker News", "Youtube"],
         datasets: [
           {
             label: "",
