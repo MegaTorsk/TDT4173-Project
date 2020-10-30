@@ -6,11 +6,12 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Embedding
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from sklearn.utils import class_weight
+from sklearn.utils import class_weight, shuffle
 from sklearn.metrics import classification_report
 #import tensorflowjs as tfjs
 
-max_comment_length = 200
+
+max_comment_length = 100
 word_amount = 10000
 embedding_dim = 128
 
@@ -27,9 +28,7 @@ reddit_file3 = open("formated_data/reddit3.pickle", "rb")
 reddit_data3 = pickle.load(reddit_file3)
 reddit_file3.close()
 
-reddit_data = np.concatenate((reddit_data0, reddit_data1, reddit_data2, reddit_data3), axis=0)
-print(reddit_data.shape)
-exit()
+reddit_data = reddit_data0 + reddit_data1 + reddit_data2 + reddit_data3 # Combine lists
 
 hackernews_file = open("formated_data/hacker_news.pickle", "rb")
 hackernews_data = pickle.load(hackernews_file)
@@ -39,36 +38,32 @@ youtube_file = open("formated_data/youtube.pickle", "rb")
 youtube_data = pickle.load(youtube_file)
 youtube_file.close()
 
-reddit_samples = reddit_data.shape[0]
-hackernews_samples = hackernews_data.shape[0]
-youtube_samples = youtube_data.shape[0]
+reddit_samples = len(reddit_data)
+hackernews_samples = len(hackernews_data)
+youtube_samples = len(youtube_data)
 samples = reddit_samples + hackernews_samples + youtube_samples
 
-reddit_labels = np.array([0 for i in range(reddit_samples)])
-hackernews_labels = np.array([1 for i in range(hackernews_samples)])
-youtube_labels = np.array([2 for i in range(youtube_samples)])
+reddit_labels = [0 for i in range(reddit_samples)]
+hackernews_labels = [1 for i in range(hackernews_samples)]
+youtube_labels = [2 for i in range(youtube_samples)]
 
-data = np.concatenate((reddit_data, hackernews_data, youtube_data), axis=0)
-labels = np.concatenate((reddit_labels, hackernews_labels, youtube_labels), axis=0)
-data = np.stack((data, labels), axis=1)
-np.random.shuffle(data)
+data = reddit_data + hackernews_data + youtube_data
+labels = reddit_labels + hackernews_labels + youtube_labels
+data, labels = shuffle(data, labels)
 
-x_train = data[0 : samples * 70 // 100, 0]
-y_train = data[0 : samples * 70 // 100, 1].astype(int)
-class_weights = class_weight.compute_class_weight("balanced", np.unique(y_train), y_train)
-class_weights = {0: class_weights[0], 1: class_weights[1], 2: class_weights[2]}
-y_train = np.array(list(map(lambda x: [int(i == x) for i in range(3)], y_train)))
+x_train = data[0 : samples * 70 // 100]
+x_val = data[samples * 70  // 100 : samples * 85 // 100]
+x_test = data[samples * 85 // 100 :]
 
-x_val = data[samples * 70  // 100 : samples * 85 // 100, 0]
-y_val = data[samples * 70  // 100 : samples * 85 // 100, 1].astype(int)
-y_val = np.array(list(map(lambda x: [int(i == x) for i in range(3)], y_val)))
+y_train = labels[0 : samples * 70 // 100]
+y_val = labels[samples * 70  // 100 : samples * 85 // 100]
+y_test = labels[samples * 85 // 100 :]
 
-x_test = data[samples * 85 // 100 :, 0]
-y_test = data[samples * 85 // 100 :, 1].astype(int)
-y_test = np.array(list(map(lambda x: [int(i == x) for i in range(3)], y_test)))
+class_weights = class_weight.compute_class_weight("balanced", [0, 1, 2], y_train)
+class_weights = dict(enumerate(class_weights))
 
 tokenizer = Tokenizer(num_words=word_amount)
-tokenizer.fit_on_texts(x_train) # må kanskje skrive list(x_train)
+tokenizer.fit_on_texts(x_train)
 
 f = open("tokenizer.txt", "w")
 f.write(str(tokenizer.word_index))
@@ -82,17 +77,9 @@ x_train = pad_sequences(x_train, maxlen=max_comment_length)
 x_val = pad_sequences(x_val, maxlen=max_comment_length)
 x_test = pad_sequences(x_test, maxlen=max_comment_length)
 
-def evaluate(y_true, y_pred):
-	classes = {"[1 0 0]": 0, "[0 1 0]": 1, "[0 0 1]": 2}
-	n = len(y_true)
-	true = np.zeros(n, dtype=int)
-	pred = np.zeros(n, dtype=int)
-	for i in range(n):
-		true[i] = classes[str(y_true[i])]
-		for j in range(3):
-			if y_pred[i, j] == np.max(y_pred[i]):
-				pred[i] = j
-	return classification_report(true, pred, target_names=["Reddit", "Hacker News", "YouTube"])
+y_train = np.array(list(map(lambda x: [int(i == x) for i in range(3)], y_train)))
+y_val = np.array(list(map(lambda x: [int(i == x) for i in range(3)], y_val)))
+y_test = np.array(list(map(lambda x: [int(i == x) for i in range(3)], y_test)))
 
 
 models = []
@@ -132,23 +119,24 @@ model.add(Dense(3, activation="softmax"))
 models.append(model)
 
 # Droput og regualrization fikser overfitting, men trengs forhåpentligvis ikke
+# NumPy arrays er raskere og mer plasseffektive når elementene er tall. For stringer er de ikke det
 
 for i in range(len(models)):
 	model = models[i]
 	model.compile(loss="categorical_crossentropy", optimizer="rmsprop", metrics=["accuracy"])
 	model.fit(x_train, y_train, class_weight=class_weights, epochs=10, batch_size=128, verbose=1)
-	#tfjs.converters.save_keras_model(model, "model")
+	#tfjs.converters.save_keras_model(model, "model" + str(i))
 
 	f = open("model" + str(i) + ".txt")
 
 	loss, accuracy = model.evaluate(x_val, y_val, verbose=1)
-	y_pred_val = model.predict(x_val)
 	f.write("Validation: [loss: " + str(loss) + ", accuracy: " + str(accuracy) + "]")
-	f.write(evaluate(y_val, y_pred_val))
+	y_val_pred = model.predict(x_val)
+	f.write(classification_report(np.argmax(y_val, axis=1), np.argmax(y_val_pred, axis=1), target_names=["Reddit", "Hacker News", "YouTube"]))
 
-	loss, accuracy = model.evaluate(x_val, y_val, verbose=1)
-	y_pred_val = model.predict(x_val)
+	loss, accuracy = model.evaluate(x_test, y_test, verbose=1)
 	f.write("Test: [loss: " + str(loss) + ", accuracy: " + str(accuracy) + "]")
-	f.write(evaluate(y_test, y_pred_test))
+	y_test_pred = model.predict(x_test)
+	f.write(classification_report(np.argmax(y_test, axis=1), np.argmax(y_test_pred, axis=1), target_names=["Reddit", "Hacker News", "YouTube"]))
 
 	f.close()
