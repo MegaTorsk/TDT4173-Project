@@ -43,7 +43,7 @@ function App() {
   } */
 
   const evaluateInput = async function(input) { //Sett inn AI her
-    const model = await tf.loadLayersModel('model/model.json');
+    //const model = await tf.loadLayersModel('model/model.json');
     /*const inputData = tf.tensor2d([[   0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
       0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
       0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
@@ -70,16 +70,16 @@ function App() {
         }
     }
 
-    const prediction = model.predict(tf.tensor2d([inputData], [1, 200]));
-    const values = prediction.dataSync();
-    const arr = Array.from(values);
+    //const prediction = model.predict(tf.tensor2d([inputData], [1, 200]));
+    //const values = prediction.dataSync();
+    //const arr = Array.from(values);
 
     //gang verdiene med 100
-    const result = arr.map(x => x*100);
+    //const result = arr.map(x => x*100);
 
     //returner verdier i form av liste
-    console.log(arr);
-    return result;
+    //console.log(arr);
+    return [10,10,10];//result;
   }
 
   return (
@@ -96,7 +96,7 @@ function App() {
       <Fade in={showResult} timeout={1000}>
         <div className={showResult ? 'ResultSection' : 'hidden'}>
           {showResult ? <BarChart resultingValues={resultList} /> : null}
-          {showResult ? <Button variant="outline-dark" style={{margin: 20}} onClick={() => toggleShowResult(!showResult)}>{/*Try again*/isLoading.toString()}</Button> : null}
+          {showResult ? <Button variant="outline-dark" style={{margin: 20}} onClick={() => toggleShowResult(!showResult)}>Try again</Button> : null}
         </div>
       </Fade>
     </div>
