@@ -10,6 +10,8 @@ from sklearn.utils import class_weight, shuffle
 from sklearn.metrics import classification_report
 #import tensorflowjs as tfjs
 
+np.random.seed(0)
+
 
 max_comment_length = 100
 word_amount = 10000
