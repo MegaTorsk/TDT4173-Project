@@ -50,7 +50,7 @@ app.use(function(err, req, res, next) {
 });
 
 app.listen(port, function () {
-  console.log(`Example app listening on port !`);
+  console.log(`Server listening on port 3000!`);
  });
 
 
