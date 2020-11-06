@@ -12,6 +12,12 @@ from sklearn.metrics import classification_report
 
 np.random.seed(0)
 
+import tensorflow.compat.v1 as tf
+
+tf.disable_v2_behavior()  #disable for tensorFlow V2
+physical_devices = tf.config.experimental.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
 
 max_comment_length = 100
 word_amount = 10000
@@ -57,13 +63,13 @@ youtube_samples = youtube_data.shape[0]
 samples = reddit_samples + hackernews_samples + youtube_samples
 """
 
-reddit_labels = [0 for i in range(reddit_samples)]
-hackernews_labels = [1 for i in range(hackernews_samples)]
-youtube_labels = [2 for i in range(youtube_samples)]
+reddit_labels = np.array([0 for i in range(reddit_samples)])
+hackernews_labels = np.array([1 for i in range(hackernews_samples)])
+youtube_labels = np.array([2 for i in range(youtube_samples)])
 
-data = reddit_data + hackernews_data + youtube_data
 #data = np.concatenate((reddit_data, hackernews_data, youtube_data), axis=0)
-labels = reddit_labels + hackernews_labels + youtube_labels
+data = reddit_data + hackernews_data + youtube_data
+labels = np.concatenate((reddit_labels, hackernews_labels, youtube_labels), axis=0)
 data, labels = shuffle(data, labels, random_state=0)
 
 x_train = data[0 : samples * 70 // 100]
@@ -74,7 +80,7 @@ y_train = labels[0 : samples * 70 // 100]
 y_val = labels[samples * 70  // 100 : samples * 85 // 100]
 y_test = labels[samples * 85 // 100 :]
 
-class_weights = class_weight.compute_class_weight("balanced", [0, 1, 2], y_train)
+class_weights = class_weight.compute_class_weight("balanced", [0, 1, 2], y=y_train)
 class_weights = dict(enumerate(class_weights))
 
 tokenizer = Tokenizer(num_words=word_amount)
@@ -102,7 +108,7 @@ models = []
 model = Sequential()
 #model.add(Embedding(word_amount, embedding_dim, input_length=max_comment_length))
 model.add(Dense(3, activation="softmax"))
-models.append(model)
+#models.append(model)
 
 # LSTM
 model = Sequential()
@@ -132,13 +138,10 @@ model.add(Bidirectional(GRU(embedding_dim)))
 model.add(Dense(3, activation="softmax"))
 models.append(model)
 
-# Droput og regualrization fikser overfitting, men trengs forhåpentligvis ikke
-# NumPy arrays er raskere og mer plasseffektive når elementene er tall. For stringer er de ikke det
-
 for i in range(len(models)):
 	model = models[i]
 	model.compile(loss="categorical_crossentropy", optimizer="rmsprop", metrics=["accuracy"])
-	model.fit(x_train, y_train, class_weight=class_weights, epochs=1, batch_size=128, verbose=1)
+	model.fit(x_train, y_train, class_weight=class_weights, epochs=3, batch_size=128, verbose=1)
 	#tfjs.converters.save_keras_model(model, "model" + str(i))
 
 	f = open("model" + str(i) + ".txt", "w")
