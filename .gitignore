@@ -1,0 +1,3 @@
+*.npy
+model/*
+node_modules/*
