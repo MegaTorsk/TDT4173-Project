@@ -29,7 +29,7 @@ function App() {
   const evaluateInput = async function(input) {
     var axiosResult = null;
     console.log('before')
-    await axios.post('http://localhost:3000/textSubmit/', { input })
+    await axios.post('http://api-commentclassifier.herokuapp.com/textSubmit/', { input })
       .then(res => {
         axiosResult = res;
       })
