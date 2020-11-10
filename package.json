@@ -16,6 +16,7 @@
     "react-chartjs-2": "^2.10.0",
     "react-dom": "^16.13.1",
     "react-loading-overlay": "^1.0.1",
+    "react-native-elements": "^3.0.0-alpha.1",
     "react-scripts": "3.4.3",
     "request": "^2.88.2",
     "semantic-ui-react": "^2.0.0"
@@ -40,5 +41,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.12.1",
+    "@babel/plugin-transform-react-jsx": "^7.12.5",
+    "@babel/preset-react": "^7.12.5"
   }
 }

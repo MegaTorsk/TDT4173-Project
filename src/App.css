@@ -1,11 +1,12 @@
 .App {
   text-align: center;
-  /*margin-left: auto;
-  margin-right: auto;
-  margin-top: 50px;*/
   width: auto;
   padding: 100px;
-  /*background-color: green;*/
+}
+
+.App-wrapper{
+  height: 100%;
+  width: 100%;
 }
 
 ._loading_overlay_wrapper_loading_overlay_wrapper--active {
@@ -22,7 +23,6 @@
   margin-left: auto;
   margin-right: auto;
   width: 50%;
-  /*background-color: blue;*/
   height: 300px;
 }
 
@@ -41,6 +41,30 @@
   margin-left: auto;
   margin-right: auto;
   width: 50%;
-  /*background-color: blue;*/
   height: 300px;
+}
+
+.about-button {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding-left: 1.5%!important;
+  padding-bottom: 1%!important;
+}
+
+.button {
+  background: none!important;
+  border: none;
+  font-family: arial, sans-serif;
+  color: #069;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.about-wrapper {
+  align-content: center;
+  width: 60%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10%;
 }

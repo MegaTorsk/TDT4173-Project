@@ -60,7 +60,7 @@ class BarChart extends React.Component {
       return (
         <MDBContainer>
           <h3 className="mt-5">Where does your comment match?</h3>
-          <Bar data={this.state.dataBar} options={this.state.barChartOptions} />
+          <div style={{borderStyle: "solid", borderWidth: 1, borderColor: "lightgrey", padding: "3%"}}><Bar data={this.state.dataBar} options={this.state.barChartOptions} /></div>
         </MDBContainer>
       );
     }
