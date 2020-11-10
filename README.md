@@ -8,7 +8,7 @@ This repository contains the code for training the model used for the project in
 * [Hacker News Corpus](https://www.kaggle.com/hacker-news/hacker-news-corpus)
 * [Trending YouTube Video Statistics and Comments](https://www.kaggle.com/datasnaek/youtube)
 
-## Reguirements
+## Requirements
 
 * numpy >= 1.18.5
 * TensorFlow >= 2.3.0
