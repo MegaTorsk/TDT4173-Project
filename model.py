@@ -1,16 +1,23 @@
+import random
 import numpy as np
 import pickle
+import matplotlib.pyplot as plt
+
+from tensorflow.random import set_seed
+random.seed(0)
+np.random.seed(0)
+set_seed(0)
+
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import LSTM, GRU, Bidirectional, Attention, Concatenate
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import Embedding
+from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.utils import class_weight, shuffle
 from sklearn.metrics import classification_report
 #import tensorflowjs as tfjs
-
-np.random.seed(0)
 
 import tensorflow.compat.v1 as tf
 
@@ -22,7 +29,8 @@ tf.config.experimental.set_memory_growth(physical_devices[0], True)
 max_comment_length = 100
 word_amount = 10000
 embedding_dim = 128
-
+lstm_dim = 192
+learning_rate = 0.001
 
 reddit_file0 = open("formated_data/reddit0.pickle", "rb")
 reddit_data0 = pickle.load(reddit_file0)
@@ -63,32 +71,32 @@ youtube_samples = youtube_data.shape[0]
 samples = reddit_samples + hackernews_samples + youtube_samples
 """
 
-reddit_labels = np.array([0 for i in range(reddit_samples)])
-hackernews_labels = np.array([1 for i in range(hackernews_samples)])
-youtube_labels = np.array([2 for i in range(youtube_samples)])
+reddit_labels = [0 for i in range(reddit_samples)]
+hackernews_labels = [1 for i in range(hackernews_samples)]
+youtube_labels = [2 for i in range(youtube_samples)]
 
-#data = np.concatenate((reddit_data, hackernews_data, youtube_data), axis=0)
 data = reddit_data + hackernews_data + youtube_data
-labels = np.concatenate((reddit_labels, hackernews_labels, youtube_labels), axis=0)
+#data = np.concatenate((reddit_data, hackernews_data, youtube_data), axis=0)
+labels = reddit_labels + hackernews_labels + youtube_labels
 data, labels = shuffle(data, labels, random_state=0)
 
 x_train = data[0 : samples * 70 // 100]
 x_val = data[samples * 70  // 100 : samples * 85 // 100]
-x_test = data[samples * 85 // 100 :]
+x_test = data[samples * 85 // 100 : samples]
 
 y_train = labels[0 : samples * 70 // 100]
 y_val = labels[samples * 70  // 100 : samples * 85 // 100]
-y_test = labels[samples * 85 // 100 :]
+y_test = labels[samples * 85 // 100 : samples]
 
-class_weights = class_weight.compute_class_weight("balanced", [0, 1, 2], y=y_train)
+class_weights = class_weight.compute_class_weight("balanced", classes=[0, 1, 2], y=y_train)
 class_weights = dict(enumerate(class_weights))
 
-tokenizer = Tokenizer(num_words=word_amount)
+tokenizer = Tokenizer(num_words=word_amount, oov_token=1)
 tokenizer.fit_on_texts(x_train)
 
-f = open("tokenizer.txt", "w")
-f.write(str(tokenizer.word_index))
-f.close()
+#f = open("tokenizer.txt", "w")
+#f.write(str(tokenizer.word_index))
+#f.close()
 
 x_train = tokenizer.texts_to_sequences(x_train)
 x_val = tokenizer.texts_to_sequences(x_val)
@@ -113,46 +121,72 @@ model.add(Dense(3, activation="softmax"))
 # LSTM
 model = Sequential()
 model.add(Embedding(word_amount, embedding_dim, input_length=max_comment_length))
-model.add(LSTM(embedding_dim))
+model.add(LSTM(lstm_dim))
 model.add(Dense(3, activation="softmax"))
-models.append(model)
+#models.append(model)
 
 # Bidirectional LSTM
 model = Sequential()
 model.add(Embedding(word_amount, embedding_dim, input_length=max_comment_length))
-model.add(Bidirectional(LSTM(embedding_dim)))
+model.add(Bidirectional(LSTM(lstm_dim)))
 model.add(Dense(3, activation="softmax"))
 models.append(model)
 
 # GRU
 model = Sequential()
 model.add(Embedding(word_amount, embedding_dim, input_length=max_comment_length))
-model.add(GRU(embedding_dim))
+model.add(GRU(lstm_dim))
 model.add(Dense(3, activation="softmax"))
-models.append(model)
+#models.append(model)
 
 # Bidirectional GRU
 model = Sequential()
 model.add(Embedding(word_amount, embedding_dim, input_length=max_comment_length))
-model.add(Bidirectional(GRU(embedding_dim)))
+model.add(Bidirectional(GRU(lstm_dim)))
 model.add(Dense(3, activation="softmax"))
-models.append(model)
+#models.append(model)
 
 for i in range(len(models)):
 	model = models[i]
-	model.compile(loss="categorical_crossentropy", optimizer="rmsprop", metrics=["accuracy"])
-	model.fit(x_train, y_train, class_weight=class_weights, epochs=3, batch_size=128, verbose=1)
-	#tfjs.converters.save_keras_model(model, "model" + str(i))
+	model.compile(loss="categorical_crossentropy", optimizer=Adam(learning_rate=learning_rate), metrics=["accuracy"])
+	epochs=10
+	history = model.fit(x_train, y_train, validation_data=(x_val, y_val), class_weight=class_weights, epochs=epochs, batch_size=128, verbose=1)
 
-	f = open("model" + str(i) + ".txt", "w")
+	axis = [i + 1 for i in range(epochs)]
+	plt.figure(0)
+	plt.plot(axis, history.history["acc"])
+	plt.plot(axis, history.history["val_acc"])
+	plt.ylim(0, 1)
+	plt.xticks(axis, axis)
+	plt.title("Model Accuracy")
+	plt.ylabel("Accuracy")
+	plt.xlabel("Epoch")
+	plt.legend(["Train", "Validation"], loc="upper left")
+	plt.savefig("model_acc")
 
-	loss, accuracy = model.evaluate(x_val, y_val, verbose=1)
-	f.write("Validation: [loss: " + str(loss) + ", accuracy: " + str(accuracy) + "]")
-	y_val_pred = model.predict(x_val)
-	f.write(classification_report(np.argmax(y_val, axis=1), np.argmax(y_val_pred, axis=1), target_names=["Reddit", "Hacker News", "YouTube"]))
+	plt.figure(1)
+	plt.plot(axis, history.history["loss"])
+	plt.plot(axis, history.history["val_loss"])
+	plt.ylim(0, max(history.history["loss"] + history.history["val_loss"]) + 0.3)
+	plt.xticks(axis, axis)
+	plt.title("Model loss")
+	plt.ylabel("Loss")
+	plt.xlabel("Epoch")
+	plt.legend(["Train", "Validation"], loc="upper left")
+	plt.savefig("model_loss")
+
+	model.save("model.hdf5")
+	#tfjs.converters.save_keras_model(model, "model")
+
+	f = open("model.txt", "w")
+
+	#loss, accuracy = model.evaluate(x_val, y_val, verbose=1)
+	#f.write("Validation: [loss: " + str(loss) + ", accuracy: " + str(accuracy) + "]\n")
+	#y_val_pred = model.predict(x_val)
+	#f.write(classification_report(np.argmax(y_val, axis=1), np.argmax(y_val_pred, axis=1), target_names=["Reddit", "Hacker News", "YouTube"]))
 
 	loss, accuracy = model.evaluate(x_test, y_test, verbose=1)
-	f.write("Test: [loss: " + str(loss) + ", accuracy: " + str(accuracy) + "]")
+	f.write("Test: [loss: " + str(loss) + ", accuracy: " + str(accuracy) + "]\n")
 	y_test_pred = model.predict(x_test)
 	f.write(classification_report(np.argmax(y_test, axis=1), np.argmax(y_test_pred, axis=1), target_names=["Reddit", "Hacker News", "YouTube"]))
 
