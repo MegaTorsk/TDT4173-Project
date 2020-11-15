@@ -10,17 +10,18 @@ class PreProcesser {
 
     tokenize(input) {
         var words = input.split(" ");
-        var inputData = new Array(200);
+        var inputData = new Array(100);
         var wordIndex = words.length - 1;
-        for(var i = 199; i >= 0; i--){
-            if (!tokenizer.hasOwnProperty(words[wordIndex])){
-                inputData[i] = 0;
+        for(var i = 99; i >= 0; i--){
+            if (wordIndex >= 0 && !tokenizer.hasOwnProperty(words[wordIndex])){
+                inputData[i] = 1;
                 wordIndex--;
                 continue
             }
             if(wordIndex >= 0){
                 inputData[i] = tokenizer[words[wordIndex--]];
-            }else{
+            }
+            else{
                 inputData[i] = 0;
             }
         }
