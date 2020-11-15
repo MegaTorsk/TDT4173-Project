@@ -1,4 +1,5 @@
-const tokenizer = require('./tokenizer.json');
+const sqlite3 = require('sqlite3');
+const { open } = require('sqlite');
 const lemmatizer = require('./lemmatizer.json');
 const emojiUnicode = require('emoji-dictionary');
 const emojis = emojiUnicode.unicode;
@@ -6,20 +7,27 @@ const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
 class PreProcesser {
 
+    async createConnection(){
+        this.db = await open({filename: './tokenizer.db', driver: sqlite3.Database});
+    }
     
-
-    tokenize(input) {
+    
+    async tokenize(input) {
+        var sql = `SELECT token
+           FROM tokens
+           WHERE token_name  = ?`;
         var words = input.split(" ");
         var inputData = new Array(100);
         var wordIndex = words.length - 1;
         for(var i = 99; i >= 0; i--){
-            if (wordIndex >= 0 && !tokenizer.hasOwnProperty(words[wordIndex])){
-                inputData[i] = 1;
-                wordIndex--;
-                continue
-            }
-            if(wordIndex >= 0){
-                inputData[i] = tokenizer[words[wordIndex--]];
+            if (wordIndex >= 0){
+                var res = await this.db.get(sql, [words[wordIndex--]]);
+                if (res && res.token < 10000){
+                    inputData[i] = res.token;
+                }
+                else{
+                    inputData[i] = 1;
+                }
             }
             else{
                 inputData[i] = 0;

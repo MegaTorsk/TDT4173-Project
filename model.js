@@ -8,12 +8,13 @@ class Model {
     async init() {
         var handler = tfn.io.fileSystem("./model/model.json")
         this.model = await tf.loadLayersModel(handler);
+        preprocesser.createConnection();
     }
 
 
     async run(input) {
-        const processed = preprocesser.preprocess(input);
-        const inputData = tf.tensor2d([processed], [1, 200]);
+        const processed = await preprocesser.preprocess(input);
+        const inputData = tf.tensor2d([processed], [1, 100]);
         const prediction = await this.model.predict(inputData);
         const values = prediction.dataSync();
         const arr = Array.from(values);  
