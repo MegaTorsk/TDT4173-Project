@@ -1,68 +1,29 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# TDT4173-Project
+This is a the frontend code for a comment classifier project. The website was built using Node.js and React.js.
 
-## Available Scripts
+## Pre-requisits
+Make sure to have `npm` and `nodejs` installed. Node.js version should be >= 14.15.1. For how to do this visit the [npm website](https://www.npmjs.com/get-npm).
 
-In the project directory, you can run:
+## Running Locally
+Firstly, clone the repository
+```
+git clone https://github.com/MegaTorsk/TDT4173-Project.git
+```
+Make sure to be on the website branch, and run
+```
+npm install
+```
+After the installation is finished, simply use the command
+```
+npm start
+```
+The website will then run locally on http://localhost:3000/ if nothing else is specified.
 
-### `npm start`
+## Code Structure
+App.js renders 4 main bootstrap Fade elements, 3 of which contain the three main pages of the website. The fourth Fade element contains the "About button". The three pages are:
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- Submit page, contains a title, text area and submit button.
+- Result page, contains a title, the bootstrap barchart showing the results, and a "Try again" button.
+- About page, show information about the project and website.
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
-
-### Analyzing the Bundle Size
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
-
-### Making a Progressive Web App
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
-
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+By pressing the submit button, an axios call is made to the backend. A TensorFlow.js model on the backend-side will then evaluate the value that was in the text area prior to the submit button being clicked. The response from the backend is then displayed on the barchart in the Result page.

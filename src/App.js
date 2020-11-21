@@ -67,6 +67,10 @@ function App() {
               Our advanced bidirectional LSTM machine learning model used approximately 12 million samples from the comment sections of YouTube, Hacker News and Reddit
               during its learning phase to ble able to classify comments with ~80% accuracy.
              </p>
+             <p>
+              This website was built using Node.js and React.js, and it communicates with an Express.js server. The model was trained using TensorFlow, and is loaded server-side using TensorFlow.js.
+              When a comment is submitted, the website will send the comment to the backend which will then evaluate it and respond with the model's prediction. Please visit <a href="https://github.com/MegaTorsk/TDT4173-Project/">our GitHub repo</a> for additional information.
+             </p>
              <button className={showAbout ? "button" : "hidden"} onClick={() => toggleAbout(false)}> Close </button>
           </div>
         </Fade>
