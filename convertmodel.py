@@ -20,5 +20,6 @@ from sklearn.utils import class_weight, shuffle
 from sklearn.metrics import classification_report
 import tensorflowjs as tfjs
 
+# Convert a Keras model to a tensorflow.js model
 model = load_model("model.hdf5")
 tfjs.converters.save_keras_model(model, "model")
