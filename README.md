@@ -16,6 +16,8 @@ This repository contains the code for the final project in the NTNU course TDT41
 * TensorFlowJS >= 2.7.0
 * scikit-learn >= 0.23.2
 * keras-tuner >= 1.0.1
+* nltk >= 3.5
+* emoji >= 0.6.0
 
 ### Application website
 

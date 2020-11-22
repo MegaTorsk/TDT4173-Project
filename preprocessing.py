@@ -47,13 +47,13 @@ def preprocess(text):
     # Using an emoji-token
     text = "".join([" -emoji- " if s in emojis else s for s in text if s in allowed_letters])
     # Removing disallowed characters
-    text = "".join([text[i] for i in range(len(text)) if (text[i] in allowed_letters2
-        \ or (text[i+1:i+5] == "url-" or text[i+1:i+7] == "emoji-" 
-        \ or text[i-4:i] == "-url" or text[i-6:i] == "-emoji"))])
+    text = "".join([text[i] for i in range(len(text)) if (text[i] in allowed_letters2 \
+        or (text[i+1:i+5] == "url-" or text[i+1:i+7] == "emoji-" \
+        or text[i-4:i] == "-url" or text[i-6:i] == "-emoji"))])
     # Removing extra whitespace
     text = re.sub(r"\ +", " ", text)
     text = text.strip()
     # Lemmatizing the words
-    text = " ".join([w if ("-emoji-" in w or "-url-" in w) else lemmatizer(w)
-        \ for w in nltk.word_tokenize(text)])
+    text = " ".join([w if ("-emoji-" in w or "-url-" in w) else lemmatizer(w) \
+        for w in nltk.word_tokenize(text)])
     return text
