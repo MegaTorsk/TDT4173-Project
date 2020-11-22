@@ -16,4 +16,7 @@ Make sure to be on the server branch, and run
 ```
 npm install
 ```
-
+Run the server locally using the command
+```
+npm start
+```
