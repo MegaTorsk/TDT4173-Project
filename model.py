@@ -43,25 +43,29 @@ def load_data():
     # Store as regular python lists instead of numpy arrays
     # Because the data is textstrings, numpy arrays use more space
 
-    reddit_file0 = open("formated_data/reddit0.pickle", "rb")
+    # Update to the directory where you stored the preprocessed
+    # data sets
+    dataset_directory = "formated_data/"
+    
+    reddit_file0 = open(dataset_directory + "reddit0.pickle", "rb")
     reddit_data0 = pickle.load(reddit_file0)
     reddit_file0.close()
-    reddit_file1 = open("formated_data/reddit1.pickle", "rb")
+    reddit_file1 = open(dataset_directory + "reddit1.pickle", "rb")
     reddit_data1 = pickle.load(reddit_file1)
     reddit_file1.close()
-    reddit_file2 = open("formated_data/reddit2.pickle", "rb")
+    reddit_file2 = open(dataset_directory + "reddit2.pickle", "rb")
     reddit_data2 = pickle.load(reddit_file2)
     reddit_file2.close()
-    reddit_file3 = open("formated_data/reddit3.pickle", "rb")
+    reddit_file3 = open(dataset_directory + "reddit3.pickle", "rb")
     reddit_data3 = pickle.load(reddit_file3)
     reddit_file3.close()
     reddit_data = reddit_data0 + reddit_data1 + reddit_data2 + reddit_data3 # Combine lists
 
-    hackernews_file = open("formated_data/hacker_news.pickle", "rb")
+    hackernews_file = open(dataset_directory + "hacker_news.pickle", "rb")
     hackernews_data = pickle.load(hackernews_file)
     hackernews_file.close()
 
-    youtube_file = open("formated_data/youtube.pickle", "rb")
+    youtube_file = open(dataset_directory + "youtube.pickle", "rb")
     youtube_data = pickle.load(youtube_file)
     youtube_file.close()
 
