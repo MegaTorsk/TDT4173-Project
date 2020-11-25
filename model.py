@@ -301,6 +301,7 @@ if __name__ == "__main__":
     # Load the data as lists
     data, labels, samples = load_data(dataset_directory)
     print("Data loaded")
+    print("Starting data transformation. Will take a lot of time")
     
     # Transform the data with tokenization and padding
     x, y, class_weights = transform_data(data, labels, samples)
