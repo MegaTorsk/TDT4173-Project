@@ -155,7 +155,7 @@ def plot_training(history):
     # Create a list with numbers from 1 to epochs to use as the x-a
     axis = [i + 1 for i in range(epochs)]
     
-    plt.figure(0)0
+    plt.figure(0)
     plt.plot(axis, history.history["acc"])
     plt.plot(axis, history.history["val_acc"])
     #plt.plot(axis, history.history["accuracy"])
