@@ -11,6 +11,7 @@ This repository contains the code for the final project in the NTNU course TDT41
 ### Requirements
 
 * numpy >= 1.16.5
+* matplotlib >= 3.3.2
 * TensorFlow >= 2.3.0
 * Keras >= 2.4.0
 * TensorFlowJS >= 2.7.0
