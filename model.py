@@ -18,18 +18,18 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from sklearn.utils import class_weight, shuffle
 from sklearn.metrics import classification_report
-import tensorflowjs as tfjs
+#import tensorflowjs as tfjs
 import kerastuner as kt
 
+# Required to handle some version inconsistencies between TensorFlow and CUDA
+# Can be commented out if these problems do not occur
 import tensorflow.compat.v1 as tf
-
 tf.disable_v2_behavior()
 physical_devices = tf.config.experimental.list_physical_devices("GPU")
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 
 # Optimal hyperparameters, found after optimization
-
 max_comment_length = 100
 word_amount = 10000
 embedding_dim = 128
@@ -38,14 +38,12 @@ learning_rate = 0.001
 epochs = 10
 
 
-def load_data():
+# Load data from file
+# Returns a tuple containing the shuffled data, shuffled labels and the number of samples
+def load_data(dataset_directory):
     # Reading data
     # Store as regular python lists instead of numpy arrays
-    # Because the data is textstrings, numpy arrays use more space
-
-    # Update to the directory where you stored the preprocessed
-    # data sets
-    dataset_directory = "formated_data/"
+    # Because the data is textstrings, numpy arrays use significantly more space
     
     reddit_file0 = open(dataset_directory + "reddit0.pickle", "rb")
     reddit_data0 = pickle.load(reddit_file0)
@@ -74,35 +72,25 @@ def load_data():
     youtube_samples = len(youtube_data)
     samples = reddit_samples + hackernews_samples + youtube_samples
     
-    """
-    reddit_data = np.load("formated_data/reddit.npy")
-    hackernews_data = np.load("formated_data/hacker_news_test.npy")
-    youtube_data = np.load("formated_data/youtube_test.npy")
-
-    reddit_samples = reddit_data.shape[0]
-    hackernews_samples = hackernews_data.shape[0]
-    youtube_samples = youtube_data.shape[0]
-    samples = reddit_samples + hackernews_samples + youtube_samples
-    """
-    
-    # Creating labels
+    # Creating lists with labels
     reddit_labels = np.array([0 for i in range(reddit_samples)])
     hackernews_labels = np.array([1 for i in range(hackernews_samples)])
     youtube_labels = np.array([2 for i in range(youtube_samples)])
 
-    # Concatinating data
-    # Numpy arrays has to be concatenated differently
+    # Concatinating the data
+    # Numpy arrays has to be concatenated differently than normal Python lists
     data = reddit_data + hackernews_data + youtube_data
-    #data = np.concatenate((reddit_data, hackernews_data, youtube_data), axis=0)
     labels = np.concatenate((reddit_labels, hackernews_labels, youtube_labels), axis=0)
 
-    # Shuffling data so that the distribution of train and test
-    # data are as similar as possible
+    # Shuffling the data with scikit-learn to ensure an even distribution of all data points and labels
+    # Seeded for reproducibility
     data, labels = shuffle(data, labels, random_state=0)
 
     return data, labels, samples
 
 
+# Read a tokenizer after fitting with data
+# Write the contents to a JSON file to use on the website
 def export_tokenizer(tokenizer):
     # Write tokenizer in json format
     f = open("tokenizer.json", "w")
@@ -118,33 +106,41 @@ def export_tokenizer(tokenizer):
     f.close()
 
 
+# Reads data, labels and the sample amount
+# Returns transformed data to be used as input to the machine learning model
 def transform_data(data, labels, samples):
-    # Splitting the data into train, validation and test.
+    # Splitting the data into train, validation and test
+    # 70% training, 15% validation, 15% testing
     x_train = data[0 : samples * 70 // 100]
     x_val = data[samples * 70  // 100 : samples * 85 // 100]
     x_test = data[samples * 85 // 100 : samples]
-
+    
+    # Also split the labels in the same way
     y_train = labels[0 : samples * 70 // 100]
     y_val = labels[samples * 70  // 100 : samples * 85 // 100]
     y_test = labels[samples * 85 // 100 : samples]
 
-    # Class weights so that smaller classes are given more weight per sample
+    # Compute the class weights of the data set with scikit-learn
+    # This ensures that smaller classes are given more weight per sample
+    # Can prevent overfitting on classes with more samples than the the rest
     class_weights = class_weight.compute_class_weight("balanced", classes=[0, 1, 2], y=y_train)
     class_weights = dict(enumerate(class_weights))
 
-    # Tokenizer wchich replaces words with tokens
+    # Tokenizer which replaces words with tokens
+    # Fit the tokenizer to the training set
+    # Use 1 as the out-of-vocabulary token
     tokenizer = Tokenizer(num_words=word_amount, oov_token=1)
     tokenizer.fit_on_texts(x_train)
 
-    # Save final tokenizer for use with website
+    # Save final tokenizer for use on the website
     export_tokenizer(tokenizer)
 
-    # Apply tokenizer to data
+    # Apply the tokenizer to the data set
     x_train = tokenizer.texts_to_sequences(x_train)
     x_val = tokenizer.texts_to_sequences(x_val)
     x_test = tokenizer.texts_to_sequences(x_test)
 
-    # Make sure every data point has the same size
+    # Make sure every data point has the same size with padding
     x_train = pad_sequences(x_train, maxlen=max_comment_length)
     x_val = pad_sequences(x_val, maxlen=max_comment_length)
     x_test = pad_sequences(x_test, maxlen=max_comment_length)
@@ -152,12 +148,14 @@ def transform_data(data, labels, samples):
     return (x_train, x_val, x_test), (y_train, y_val, y_test), class_weights
 
 
+# Create plots showing the accuracy and loss after training the model, for each epoch
+# Plot both the training and validation
+# Note that some versions of Keras use "val_accuracy" instead of "val_acc". In case of errors, try the other variant
 def plot_training(history):
-    # Create plots showing accuracy and loss for each epoch
-
+    # Create a list with numbers from 1 to epochs to use as the x-a
     axis = [i + 1 for i in range(epochs)]
-    plt.figure(0)
-    # Some versions use "val_acc" instead of "val_accuracy". In case of errors, try the other
+    
+    plt.figure(0)0
     plt.plot(axis, history.history["acc"])
     plt.plot(axis, history.history["val_acc"])
     #plt.plot(axis, history.history["accuracy"])
@@ -182,6 +180,8 @@ def plot_training(history):
     plt.savefig("model_loss")
 
 
+# Write loss, accuracy, and a detailed classification_report to a file
+# Saves the performance of the models
 def export_performance(model, x, y, filename):
     loss, accuracy = model.evaluate(x, y, verbose=1)
     # Convert from one-hot encoding to a list with a values 1, 2 or 3
@@ -193,6 +193,10 @@ def export_performance(model, x, y, filename):
     f.close()
 
 
+# Inputs a model along with the data, labels and class_weights
+# Compile the model and train it
+# Plot the history and save the performance
+# Finally, also save the trained model to a hdf5 file
 def train_model(model, x, y, class_weights):
     x_train, x_val, x_test = x
     y_train, y_val, y_test = y
@@ -207,10 +211,11 @@ def train_model(model, x, y, class_weights):
     export_performance(model, x_val, y_val, "model_val.txt")
     export_performance(model, x_test, y_test, "model_test.txt")
 
-    #model.save("model.hdf5")
+    model.save("model.hdf5")
     #tfjs.converters.save_keras_model(model, "model")
 
 
+# Create a list containing every model to experiment with
 def create_models():
     models = []
 
@@ -245,6 +250,10 @@ def create_models():
     return models
 
 
+# Use keras-tuner to perform Hyperbanding on the selected hyperparameters
+# Create a model_builder function that generates the models
+# Either specify search ranges and steps, or a list of possible values, for the various parameters
+# After searching, export everything to a file
 def hyperparameter_optimization(x, y):
     x_train, x_val, x_test = x
     y_train, y_val, y_test = y
@@ -263,7 +272,7 @@ def hyperparameter_optimization(x, y):
         #model.compile(loss="sparse_categorical_crossentropy", optimizer=RMSprop(learning_rate=hp_learning_rate), metrics=["accuracy"])
         return model
 
-    # Some versions use "val_acc" instead of "val_accuracy". In case of errors, try the other
+    # Some versions use "val_accuracy" instead of "val_acc". In case of errors, try the other variant
     tuner = kt.Hyperband(model_builder, objective="val_acc", max_epochs=3, factor=3, directory="hyperparam", project_name="comments", seed=0)
     #tuner = kt.Hyperband(model_builder, objective="val_accuracy", max_epochs=3, factor=3, directory="hyperparam", project_name="comments", seed=0)
 
@@ -283,18 +292,29 @@ def hyperparameter_optimization(x, y):
     f.close()
 
 
+# Main method
 if __name__ == "__main__":
-    data, labels, samples = load_data()
+
+    # Update the directory where the preprocessed data is stored
+    dataset_directory = "formated_data/"
+    
+    # Load the data as lists
+    data, labels, samples = load_data(dataset_directory)
     print("Data loaded")
+    
+    # Transform the data with tokenization and padding
     x, y, class_weights = transform_data(data, labels, samples)
     print("Data transformed")
 
     # Hyperparameter optimization
-    hyperparameter_optimization(x, y)
-    print("Hyperparameter optimization done")
+    # Uncomment to perform again (note that it will not run again if there are saved results)
+    #hyperparameter_optimization(x, y)
+    print("Hyperparameter optimization finished")
 
-    # Train Bidirectional LSTM
+    # Create a list of models
+    # Only train the Bidirectional LSTM
     models = create_models()
     model = models[1]
     train_model(model, x, y, class_weights)
-    print("Model finished training")
+    print("Model training finished")
+    print("Results exported")
